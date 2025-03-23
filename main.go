@@ -53,7 +53,7 @@ func main() {
     }
     fmt.Printf("Delete response: %v\n", delRes)
 
-    // First, let's set multiple keys
+    // BatchGet = MGet - First, let's set multiple keys
     keys := []string{"key1", "key2", "key3"}
     for i, key := range keys {
         _, err := client.Set(key, fmt.Sprintf("value%d", i+1))
@@ -299,5 +299,68 @@ func main() {
     }
     fmt.Println("Hash fields after deletion:", allFields)
 
+    //ClientOperate - Multi/Exec - Valkey Glide doesn't expose Multi/Exec, so the following example executes the operations sequentially without transactions
+
+    // Keys
+    userKey := "user:123"
+    scoresKey := "user:123:scores"
+
+    // 1. Set user information
+    userInfo := map[string]string{
+        "name":  "John Doe",
+        "email": "john@example.com",
+        "age":   "30",
+    }
+    result, err = client.HSet(userKey, userInfo)
+    if err != nil {
+        fmt.Printf("Error setting user info: %v\n", err)
+        return
+    }
+    fmt.Printf("Set %d user fields\n", result)
+
+    // 2. Add scores
+    scores := []string{"95", "88", "92"}
+    result, err = client.RPush(scoresKey, scores)
+    if err != nil {
+        fmt.Printf("Error adding scores: %v\n", err)
+        return
+    }
+    fmt.Printf("Added %d scores\n", result)
+
+    // 3. Get user information
+    userData, err := client.HGetAll(userKey)
+    if err != nil {
+        fmt.Printf("Error getting user data: %v\n", err)
+        return
+    }
+    fmt.Println("\nUser Information:")
+    fmt.Printf("%v\n", userData)
+
+    // 4. Get scores
+    scoreList, err := client.LRange(scoresKey, 0, -1)
+    if err != nil {
+        fmt.Printf("Error getting scores: %v\n", err)
+        return
+    }
+    fmt.Println("\nScores:")
+    fmt.Printf("%v\n", scoreList)
+
+
+//
+//    // Print type information
+//    fmt.Printf("Client type: %T\n", client)
+//
+//    // Try a basic command with correct type
+//    var pingResult string
+//    pingResult, err = client.Ping()
+//    if err != nil {
+//        fmt.Printf("Ping error: %v\n", err)
+//        return
+//    }
+//    fmt.Printf("Ping result: %v\n", pingResult)
+
+//    // Let's print out some method information
+//    fmt.Println("\nTrying to find transaction-related methods:")
+//    fmt.Printf("Client implements: %+v\n", client)
     fmt.Println("Operations completed successfully!")
 }
