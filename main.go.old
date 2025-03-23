@@ -1,0 +1,35 @@
+package main
+
+import (
+	"fmt"
+
+	"github.com/valkey-io/valkey-glide/go/api"
+)
+
+func main() {
+	host := "clustercfg.memorydb-singleregion.nkdf1r.memorydb.us-east-1.amazonaws.com"
+	port := 6379
+
+	config := api.NewGlideClusterClientConfiguration().
+		WithAddress(&api.NodeAddress{Host: host, Port: port}).
+		WithUseTLS(true)
+
+
+    // Let's print the available configuration options
+    fmt.Printf("Configuration options: %+v\n", config)
+
+	client, err := api.NewGlideClusterClient(config)
+	if err != nil {
+		fmt.Println("1 - There was an error: ", err)
+		return
+	}
+
+	res, err := client.Ping()
+	if err != nil {
+        fmt.Println("2 - There was an error: ", err)
+        return
+	}
+	fmt.Println(res) // PONG
+
+	client.Close()
+}
